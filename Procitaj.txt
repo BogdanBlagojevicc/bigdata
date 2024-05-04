@@ -1,0 +1,25 @@
+Ovako se pokrece batch deo tj. istorijski:
+
+0. conf.dist folder ni ne gledam to je samo neka konfiguracija na hive bazu kopirana sa vezbi
+1.  Prvo stavljam podatke na HDFS preko komande: docker exec -it namenode bash i posle toga hadoop fs -copyFromLocal /asvsp/data/WeatherEvents_Jan2016-Dec2022.csv /weather ali pre toga moram na HDFS-u napraviti weather folder gde ce mi se smestiti ovaj fajl: WeatherEvents_Jan2016-Dec2022.csv
+	1.1 Ovo je sve sto se tice data foldera
+2. U run.sh pise kako da pokrenem kreiranje datawarehouse-a u hivu
+	2.1. OracleSkripta je generisana iz datamodelera i onda sam je preveo u hive I sacuvao u HiveSkripta
+	2.2. to je sve sto se tice dw-script foldera
+3. U run.sh stoji komanda za pokretanje pre-process.py fajla iz scripts foldera
+	3.1. pre-process.py - sredjuje podatke i puni dimenzije i fact tabelu u datawarehouse-u
+4. U run.sh stoji kako da se konektujem preko superseta (gde postavljam upite nad bazom) sa hive bazom 
+5. Ovaj spark-configs folder je on samo izgenerisao ne znam sto, to svakako ni ne gledam
+
+Ovako se pokrece real-time:
+
+Otvorim 3 terminala i onda:
+	1. docker-compose up (ovako pokrecem sve)
+	2. docekr-compose run --rm producer (pvako pokrecem samo producer-a)
+	3. docker exec spark-master-real ./spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1 --jars postgresql-42.2.6.jar ./asvsp/scripts/consumer.py
+	(na slici pise consumer_country.py to je naziv pre nego sto sam preimenovao)
+
+	- producer uzima podatke sa apija i salje na topike a consumer uzima podatke sa topika.
+	- U consumer.py sam napravio funkciuu space() jer rezultate upita nad real-time podacima ispisujem u konzili pa kada pokrenem ide jako brzo svi neki logovi pa da bih video gde su mi retuzlati odvojeni su sa po 10 space-ova pre I posle rezultata upita - prekidam sa ctrl+c kada uocim prazan prostor sto znaci da ide rezultat upita (cekam nekih 5-10 sekundi)
+	- Upite moram da izvrsavam jedan po jedan zato su ostali zakomentarisani - ne mogu sve od jednom ne znam sto
+
